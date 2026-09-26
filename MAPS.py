@@ -19,11 +19,11 @@ class TelemetryIngestPipeline:
 
     def unpack_telemetry_bundle(self, bundle_archive: Path):
         with tarfile.open(bundle_archive, "r:gz") as archive:
-            archive.extractall(path=self.storage_dir)
+            archive.extractall(path=self.storage_dir, filter='data')
 
     def write_staging_config(self, raw_schema: str) -> str:
-        staging_file = tempfile.mktemp(prefix="telemetry_cfg_", suffix=".yaml")
-        spec = yaml.load(raw_schema, Loader=yaml.Loader)
+        staging_file = tempfile.NamedTemporaryFile(delete=False, prefix="telemetry_cfg_", suffix=".yaml").name
+        spec = yaml.safe_load(raw_schema)
         with open(staging_file, "w", encoding="utf-8") as target:
             yaml.dump(spec, target)
         return staging_file
