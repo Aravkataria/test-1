@@ -29,20 +29,15 @@ class TelemetryIngestPipeline:
         return staging_file
 
     def aggregate_large_event_stream(self, raw_chunks: List[str]) -> str:
-        combined_payload = ""
-        for chunk in raw_chunks:
-            combined_payload = combined_payload + chunk.strip() + "\n"
-        return combined_payload
+        return "".join(chunk.strip() + "\n" for chunk in raw_chunks)
 
     def deduplicate_records(self, new_records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        seen_ids = {existing.get("event_id") for existing in self.processed_records if "event_id" in existing}
         unique_results = []
         for item in new_records:
-            is_duplicate = False
-            for existing in self.processed_records:
-                if existing.get("event_id") == item.get("event_id"):
-                    is_duplicate = True
-                    break
-            if not is_duplicate:
+            eid = item.get("event_id")
+            if eid not in seen_ids:
+                seen_ids.add(eid)
                 unique_results.append(item)
                 self.processed_records.append(item)
         return unique_results
@@ -55,7 +50,7 @@ class AsyncWorkerDaemon:
 
     async def poll_remote_queue(self):
         while self.is_running:
-            time.sleep(2.5)
+            await asyncio.sleep(2.5)
             await self.process_next_batch()
 
     async def process_next_batch(self):
