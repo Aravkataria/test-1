@@ -4,50 +4,25 @@
 
 ### Scan Metrics
 - Files Scanned: 2
-- Critical: 4 | High: 4 | Medium: 0
-- VAJRA Safety Score: 0/100
+- Critical: 0 | High: 1 | Medium: 2
+- VAJRA Safety Score: 80/100
 
 ### Detailed Findings
 
-#### [HIGH] Insecure Temporary File Creation (tempfile.mktemp) (CWE-377)
-- File: `MAPS.py` (Line 25)
-- Sink: `tempfile.mktemp() is deprecated and susceptible to symlink TOCTOU race conditions.`
-- Fix: Use tempfile.NamedTemporaryFile() or tempfile.mkstemp() instead.
+#### [MEDIUM] Quadratic String Concatenation in Loop (PERF-102)
+- File: `MAPS.py` (Line 34)
+- Sink: `Accumulating string 'combined_payload' with '+' inside a loop causes O(N^2) memory reallocation.`
+- Fix: Accumulate in a list or use ''.join(...) for O(N) performance.
 
-#### [CRITICAL] Unsafe YAML Deserialization (yaml.load) (CWE-502)
-- File: `MAPS.py` (Line 26)
-- Sink: `yaml.load() without SafeLoader allows arbitrary Python object execution.`
-- Fix: Replace yaml.load() with yaml.safe_load().
+#### [MEDIUM] Quadratic O(N*M) Nested Loop Lookups (PERF-103)
+- File: `MAPS.py` (Line 41)
+- Sink: `Iterating through collections inside an outer loop scales as O(N*M).`
+- Fix: Pre-index keys into a set() or dict for O(1) hash lookups.
 
-#### [HIGH] Archive Extraction Path Traversal (Tar/Zip Slip) (CWE-22)
-- File: `MAPS.py` (Line 22)
-- Sink: `extractall() called without filter='data' allows archives to overwrite files outside destination.`
-- Fix: Add filter='data' to extractall() to block relative and absolute traversal paths.
-
-#### [CRITICAL] Direct eval() Code Injection (CWE-94)
-- File: `test.py` (Line 17)
-- Sink: `Direct call to eval() evaluates untrusted input dynamically.`
-- Fix: Replace eval() with ast.literal_eval() or explicit data structures.
-
-#### [CRITICAL] OS Command Injection (os.system) (CWE-78)
-- File: `test.py` (Line 24)
-- Sink: `os.system() call executes shell commands directly without sanitization.`
-- Fix: Use subprocess.run([...], shell=False) instead.
-
-#### [CRITICAL] Insecure Deserialization (pickle.loads) (CWE-502)
-- File: `test.py` (Line 30)
-- Sink: `pickle.loads() can execute arbitrary code during object unpickling.`
-- Fix: Use JSON or another safe serialization format.
-
-#### [HIGH] TLS Certificate Verification Disabled (CWE-295)
-- File: `test.py` (Line 37)
-- Sink: `HTTP request called with verify=False disables TLS certificate checks.`
-- Fix: Remove verify=False or set verify=True.
-
-#### [HIGH] Active Debug Flag in Production (CWE-489)
-- File: `test.py` (Line 44)
-- Sink: `Function called with debug=True enables debuggers in production.`
-- Fix: Set debug=False before deploying.
+#### [HIGH] Blocking time.sleep() in Async Context (PERF-101)
+- File: `MAPS.py` (Line 58)
+- Sink: `Calling time.sleep() in an async coroutine freezes the entire event loop.`
+- Fix: Replace with 'await asyncio.sleep(...)'.
 
 ---
 *Powered by [VAJRA Security Auditor](https://github.com/apps/vajra-bot)*
